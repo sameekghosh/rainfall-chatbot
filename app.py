@@ -197,6 +197,43 @@ if lat_col:
 if lon_col:
     st.write(f"Detected longitude column: `{lon_col}`")
 
+st.subheader("Locations within Mean ± 1 SD rainfall")
+
+if rain_col and lat_col and lon_col:
+    mean_rain = df[rain_col].mean()
+    sd_rain = df[rain_col].std()
+
+    lower_limit = mean_rain - sd_rain
+    upper_limit = mean_rain + sd_rain
+
+    st.write(f"Mean rainfall: {mean_rain:.2f}")
+    st.write(f"Standard deviation: {sd_rain:.2f}")
+    st.write(f"Lower limit: {lower_limit:.2f}")
+    st.write(f"Upper limit: {upper_limit:.2f}")
+
+    result = df[
+        (df[rain_col] >= lower_limit) &
+        (df[rain_col] <= upper_limit)
+    ].copy()
+
+    result = result[[lat_col, lon_col, rain_col]]
+
+    st.write(f"Number of matching observations: {len(result):,}")
+
+    st.dataframe(result)
+
+    csv = result.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        label="Download latitude-longitude list",
+        data=csv,
+        file_name="locations_within_mean_plus_minus_1sd.csv",
+        mime="text/csv"
+    )
+else:
+    st.warning("Rainfall, latitude, or longitude column not found.")
+
+
 if state_col:
     selected_state = st.selectbox(
         "Select state",
